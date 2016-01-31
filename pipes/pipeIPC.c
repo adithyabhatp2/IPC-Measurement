@@ -21,17 +21,17 @@ int main(int argc, char *argv[])
 int way1[2];
 int way2[2];
 
-//int MSG_SIZE = atoi(argv[1]);
-int MSG_SIZE = (4);
+int MSG_SIZE = atoi(argv[1]);
+//int MSG_SIZE = (4);
 
 char recv_buf[MSG_SIZE];
-char * send_msg = (char *) calloc(MSG_SIZE, sizeof(char));
+char * send_msg = (char *) calloc(MSG_SIZE+1, sizeof(char));
 
 int i;
 for(i=0;i<MSG_SIZE;i++)
 	send_msg[i] = 'A';
 	
-//send_msg[MSG_SIZE] = '\0';
+send_msg[MSG_SIZE] = '\0';
 
 fprintf(stdout, "Msg is: %s\n", send_msg);
 
@@ -47,10 +47,10 @@ if ( fork() == 0 )
 	close(way1[1]); 
 	close(way2[0]); 
 	
-	read( way1[0], recv_buf, MSG_SIZE); /* read from parent */
+	read( way1[0], recv_buf, MSG_SIZE+1); /* read from parent */
 	fprintf(stdout, "Child reads : %s\n", recv_buf);
 	
-	write( way2[1], recv_buf, strlen(recv_buf)); /* write to parent */ 
+	write( way2[1], recv_buf, strlen(recv_buf)+1); /* write to parent */ 
 	fprintf(stdout, "Child sent : %s\n", recv_buf);
 	}
 else
@@ -58,10 +58,10 @@ else
 	close(way1[0]); 
 	close(way2[1]); 
 	
-	write( way1[1], send_msg, strlen(send_msg)); /* write to child */ 
+	write( way1[1], send_msg, strlen(send_msg)+1); /* write to child */ 
 	fprintf(stdout, "Parent sends : %s\n", send_msg);
 	
-	read( way2[0], recv_buf, MSG_SIZE); /* read from child */	
+	read( way2[0], recv_buf, MSG_SIZE+1); /* read from child */	
 	fprintf(stdout, "Parent recvs : %s\n", send_msg);
 	}
 
