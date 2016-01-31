@@ -41,8 +41,11 @@ int main(int argc, char *argv[])
     }
 
     servIP = argv[1];             /* First arg: server IP address (dotted quad) */
-    int MSG_SIZE = atoi(argv[2]); /* Second arg: string to echo */
-    echoServPort = atoi(argv[3]); /* Use given port, if any */
+    echoServPort = atoi(argv[2]); /* Use given port, if any */
+    int MSG_SIZE = atoi(argv[3]); /* Second arg: string to echo */
+    
+    printf("Port: %d, Size: %d", echoServPort, MSG_SIZE);
+    
     int RCVBUFSIZE = 600301;
 
     char recv_buf[RCVBUFSIZE];     /* Buffer for echo string */
@@ -67,18 +70,21 @@ int main(int argc, char *argv[])
     /* Establish the connection to the echo server */
     if (connect(sock, (struct sockaddr *) &socketServAddr, sizeof(socketServAddr)) < 0)
         DieWithError("connect() failed");
-
     
-	// start timing
-    /* Send the string to the server */
+    
+    // START TIMING
+    
     int sentCount = send(sock, send_msg, MSG_SIZE, 0);
-    
-    if ( sentCount != MSG_SIZE)
+    if (sentCount != MSG_SIZE)
         DieWithError("send() sent a different number of bytes than expected");
+    
+    // printf("Sent msg.. size:%d\n", sentCount);
+    shutdown(sock, SHUT_WR);
 
     /* Receive the same string back from the server */
     totalBytesRcvd = 0;
-    printf("Received: ");                /* Setup to print the echoed string */
+    // printf("Received: ");                /* Setup to print the echoed string */
+    
     while (totalBytesRcvd < MSG_SIZE)
     {
         /* Receive up to the buffer size (minus 1 to leave space for
@@ -88,9 +94,12 @@ int main(int argc, char *argv[])
         
         totalBytesRcvd += bytesRcvd;   /* Keep tally of total bytes */
         recv_buf[bytesRcvd] = '\0';  /* Terminate the string! */
+	
         //printf("%s", recv_buf);      /* Print the echo buffer */
 	printf("Received Msg Size.. %d\n", bytesRcvd);
     }
+
+    // END TIMING
 
     printf("Total Received: %d", totalBytesRcvd);
     printf("\n");    /* Print a final linefeed */

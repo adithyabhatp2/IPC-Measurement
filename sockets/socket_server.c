@@ -32,18 +32,29 @@ int main(int argc, char *argv[])
     unsigned int clntLen;            /* Length of client address data structure */
     
 
-    if (argc != 2)     /* Test for correct number of arguments */
+    if (argc != 3)     /* Test for correct number of arguments */
     {
-        fprintf(stderr, "Usage:  %s <Server Port>\n", argv[0]);
+        fprintf(stderr, "Usage:  %s <Server Port> <size>\n", argv[0]);
         exit(1);
     }
 
     echoServPort = atoi(argv[1]);  /* First arg:  local port */
+    int MSG_SIZE = atoi(argv[2]); /* Second arg: string to echo */
     int RCVBUFSIZE = 600301;
     
-    char echoBuffer[RCVBUFSIZE];        /* Buffer for echo string */
+    char recv_buf[RCVBUFSIZE];        /* Buffer for echo string */
     int recvMsgSize;                    /* Size of received message */
     int totalBytesRcvd;
+    
+    char * send_msg = (char *) calloc(MSG_SIZE+1, sizeof(char));
+    
+    int i;
+    for(i=0;i<MSG_SIZE;i++)
+		send_msg[i] = 'A';
+    send_msg[MSG_SIZE] = '\0';
+    
+    
+    
     /* Create socket for incoming connections */
     if ((servSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
         DieWithError("socket() failed");
@@ -76,32 +87,42 @@ int main(int argc, char *argv[])
 
         printf("Handling client %s\n", inet_ntoa(echoClntAddr.sin_addr));
 
+    // start timing..
+    
     /* Receive message from client */
-    if ((recvMsgSize = recv(clntSock, echoBuffer, RCVBUFSIZE, 0)) < 0)
-        DieWithError("recv() failed");
-
-
+    recvMsgSize = recv(clntSock, recv_buf, RCVBUFSIZE, 0);
     totalBytesRcvd = recvMsgSize;
-    //printf("Received.. %s\n", echoBuffer);
+    
+    //printf("Received.. %s\n", recv_buf);
     printf("Received Msg Size.. %d\n", recvMsgSize);
-    /* Send received string and receive again until end of transmission */
+    
     while (recvMsgSize > 0)      /* zero indicates end of transmission */
     {
-        /* Echo message back to client */
-        if (send(clntSock, echoBuffer, recvMsgSize, 0) != recvMsgSize)
-            DieWithError("send() failed");
-
+	//send(clntSock, send_msg, recvMsgSize, 0);
+         
         /* See if there is more data to receive */
-        if ((recvMsgSize = recv(clntSock, echoBuffer, RCVBUFSIZE, 0)) < 0)
+        if ((recvMsgSize = recv(clntSock, recv_buf, RCVBUFSIZE, 0)) < 0)
             DieWithError("recv() failed");
 	else
 	{
-	    //printf("Received.. %s\n", echoBuffer);
+	    //printf("Received.. %s\n", recv_buf);
 	    printf("Received Msg Size.. %d\n", recvMsgSize);
 	    totalBytesRcvd+=recvMsgSize;
 	}
     }
+    shutdown(clntSock, SHUT_RD);
     printf("Total Received: %d\n", totalBytesRcvd);
+    printf("Going to send\n");
+    
+    
+    int sentCount = send(clntSock, send_msg, MSG_SIZE, 0);
+    
+    // END TIMING
+    
+    if (sentCount != MSG_SIZE)
+        DieWithError("send() sent a different number of bytes than expected");
+
+    
     close(clntSock);    /* Close client socket */
     shutdown(servSock, 2);
     
