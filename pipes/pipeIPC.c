@@ -29,7 +29,7 @@ for(i=0;i<MSG_SIZE;i++)
 	send_msg[i] = 'A';
 	
 send_msg[MSG_SIZE] = '\0';
-fprintf(stdout, "Msg is: %s\n", send_msg);
+//fprintf(stdout, "Msg is: %s\n", send_msg);
 
 
 int way1[2];
@@ -48,10 +48,11 @@ if ( fork() == 0 )
 	close(way2[0]); 
 	
 	read( way1[0], recv_buf, MSG_SIZE+1); /* read from parent */
-	fprintf(stdout, "Child recvs : %s\n", recv_buf);
+	//fprintf(stdout, "Child recvs : %s of size %ld\n", recv_buf, strlen(recv_buf));
+	fprintf(stdout, "Child recvs msg of size %ld\n", strlen(recv_buf));
 	
 	write( way2[1], recv_buf, strlen(recv_buf)+1); /* write to parent */ 
-	fprintf(stdout, "Child sent : %s\n", recv_buf);
+	//fprintf(stdout, "Child sent : %s\n", recv_buf);
 	}
 else
 	{  		
@@ -59,10 +60,11 @@ else
 	close(way2[1]); 
 	
 	write( way1[1], send_msg, strlen(send_msg)+1); /* write to child */ 
-	fprintf(stdout, "Parent sends : %s\n", send_msg);
+	//fprintf(stdout, "Parent sends : %s\n", send_msg);
 	
 	read( way2[0], recv_buf, MSG_SIZE+1); /* read from child */	
-	fprintf(stdout, "Parent recvs : %s\n", send_msg);
+	//fprintf(stdout, "Parent recvs : %s of size %ld\n", send_msg, strlen(send_msg));
+	fprintf(stdout, "Parent recvs msg of size %ld\n", strlen(send_msg));
 	}
 
 
