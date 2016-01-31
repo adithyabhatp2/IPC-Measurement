@@ -13,13 +13,10 @@
 
 #include <time.h>
 
-// src: http://beej.us/guide/bgipc/output/html/multipage/pipes.html
+// ref: http://beej.us/guide/bgipc/output/html/multipage/pipes.html
 
 int main(int argc, char *argv[])
 {
-
-int way1[2];
-int way2[2];
 
 int MSG_SIZE = atoi(argv[1]);
 //int MSG_SIZE = (4);
@@ -32,8 +29,11 @@ for(i=0;i<MSG_SIZE;i++)
 	send_msg[i] = 'A';
 	
 send_msg[MSG_SIZE] = '\0';
-
 fprintf(stdout, "Msg is: %s\n", send_msg);
+
+
+int way1[2];
+int way2[2];
 
 if(pipe(way1) == -1 || pipe(way2) == -1)
 	{
@@ -48,7 +48,7 @@ if ( fork() == 0 )
 	close(way2[0]); 
 	
 	read( way1[0], recv_buf, MSG_SIZE+1); /* read from parent */
-	fprintf(stdout, "Child reads : %s\n", recv_buf);
+	fprintf(stdout, "Child recvs : %s\n", recv_buf);
 	
 	write( way2[1], recv_buf, strlen(recv_buf)+1); /* write to parent */ 
 	fprintf(stdout, "Child sent : %s\n", recv_buf);
