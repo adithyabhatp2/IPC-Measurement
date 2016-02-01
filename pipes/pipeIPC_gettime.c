@@ -28,7 +28,7 @@ if(argc!=2)
 clockid_t clk_id;
 struct timespec tp_start, tp_end, res;
 int time_elapsed_sec;
-long time_elapsed_nsec;
+long long time_elapsed_nsec;
 int retVal= 0;
 clk_id = CLOCK_MONOTONIC;
 long BILLION = 1000000000L;
@@ -87,17 +87,18 @@ else
 	// END TIME
 	
 	//fprintf(stdout, "Parent recvs : %s of size %ld\n", send_msg, strlen(send_msg));
-	fprintf(stdout, "Parent recvs msg of size %ld\n", strlen(send_msg));
+	//fprintf(stdout, "Parent recvs msg of size %ld\n", strlen(send_msg));
 	
 	// This format should make for easy batch running..
-	// printf("%d\t%ld", MSG_SIZE, total_time);
+	
 
 	time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
 	time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
 
-	fprintf(stdout, "Time elapsed sec: %d, nsec: %ld\n", time_elapsed_sec, time_elapsed_nsec);
-	fprintf(stdout, "Time elapsed in nanosecs : %ld\n",(BILLION*time_elapsed_sec)+time_elapsed_nsec);
+	//fprintf(stdout, "Time elapsed sec: %d, nsec: %ld\n", time_elapsed_sec, time_elapsed_nsec);
+	//fprintf(stdout, "Time elapsed in nanosecs : %lld\n",((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
 	
+	printf("%d\t%lld\n", MSG_SIZE, ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
 	
 	}
 	
