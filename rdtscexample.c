@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
 
     unsigned long start, end, cycles_elapsed;
     cpu_set_t cpuMask;
+    double per_second, seconds;
 
     //Set to one CPU
     CPU_ZERO(&cpuMask);
@@ -46,9 +47,12 @@ int main(int argc, char *argv[])
     end = GetCC();
 
     cycles_elapsed = (end - start);
-    //time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
 
     fprintf(stdout, "Cycles elapsed: %u\n", cycles_elapsed);
+    per_second = ((double) cycles_elapsed) / 2.0;
+    fprintf(stdout, "Cycles per second: %f\n", per_second);
+    seconds = ((double) cycles_elapsed) / 3392061000.0;
+    fprintf(stdout, "Seconds: %f\n", seconds);
 
     return 0;
 }
