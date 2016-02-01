@@ -12,41 +12,47 @@
 # include <limits.h>
 
 #include <time.h>
+#ifndef __USE_GNU
+#define __USE_GNU
+#endif
+#define _GNU_SOURCE
+#include <sched.h>
 
-// TODO !!!
 
 #define BILLION 1000000000L
+
+static __inline__ unsigned long GetCC() {
+    unsigned a, d;
+    asm volatile("rdtsc" : "=a" (a), "=d" (d));
+    return ((unsigned long) a) | (((unsigned long) d) << 32);
+}
 
 int main(int argc, char *argv[])
 {
 
+    unsigned long start, end, cycles_elapsed;
+    cpu_set_t cpuMask;
+    double per_second, seconds;
 
-clockid_t clk_id;
-struct timespec tp_start, tp_end, res;
+    //Set to one CPU
+    CPU_ZERO(&cpuMask);
+    CPU_SET(0, &cpuMask);
+    sched_setaffinity(0, sizeof(cpuMask), &cpuMask);
 
-uint64_t start, end;
+    //retVal = clock_getres(clk_id, &res);
+    //fprintf(stdout, "MONOTONIC resolution is sec: %ld, nsec: %ld\n", res.tv_sec, res.tv_nsec);
 
-int time_elapsed_sec;
-long time_elapsed_nsec;
-int retVal= 0;
+    start = GetCC();
+    sleep(2);
+    end = GetCC();
 
-clk_id = CLOCK_MONOTONIC;
+    cycles_elapsed = (end - start);
 
-retVal = clock_getres(clk_id, &res);
-fprintf(stdout, "MONOTONIC resolution is sec: %ld, nsec: %ld\n", res.tv_sec, res.tv_nsec);
+    fprintf(stdout, "Cycles elapsed: %u\n", cycles_elapsed);
+    per_second = ((double) cycles_elapsed) / 2.0;
+    fprintf(stdout, "Cycles per second: %f\n", per_second);
+    seconds = ((double) cycles_elapsed) / 3392061000.0;
+    fprintf(stdout, "Seconds: %f\n", seconds);
 
-clock_gettime(clk_id, &tp_start);
-sleep(2);
-clock_gettime(clk_id, &tp_end);
-
-time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
-time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
-
-fprintf(stdout, "Time elapsed sec: %d, nsec: %ld\n", time_elapsed_sec, time_elapsed_nsec);
-fprintf(stdout, "Time elapsed in nanosecs : %ld\n",(BILLION*time_elapsed_sec)+time_elapsed_nsec);
-
-
-
-
-return 0;
+    return 0;
 }
