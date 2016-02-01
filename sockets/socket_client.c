@@ -14,6 +14,7 @@
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
 
+// ref : http://cs.baylor.edu/~donahoo/practical/CSockets/code/TCPEchoClient.c
 
 void DieWithError(char *errorMessage)
 {
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
     
     int i;
     for(i=0;i<MSG_SIZE;i++)
-		send_msg[i] = 'A';
+	send_msg[i] = 'A';
     send_msg[MSG_SIZE] = '\0';
     
     
@@ -89,20 +90,26 @@ int main(int argc, char *argv[])
     {
         /* Receive up to the buffer size (minus 1 to leave space for
            a null terminator) bytes from the sender */
-        if ((bytesRcvd = recv(sock, recv_buf, RCVBUFSIZE - 1, 0)) <= 0)
-            DieWithError("recv() failed or connection closed prematurely");
+        bytesRcvd = recv(sock, recv_buf, RCVBUFSIZE - 1, 0);
+        
+	//if (bytesRcvd <= 0)
+          //  DieWithError("recv() failed or connection closed prematurely");
         
         totalBytesRcvd += bytesRcvd;   /* Keep tally of total bytes */
         recv_buf[bytesRcvd] = '\0';  /* Terminate the string! */
 	
         //printf("%s", recv_buf);      /* Print the echo buffer */
-	printf("Received Msg Size.. %d\n", bytesRcvd);
+	//printf("Received Msg Size.. %d\n", bytesRcvd);
     }
 
     // END TIMING
 
     printf("Total Received: %d", totalBytesRcvd);
     printf("\n");    /* Print a final linefeed */
+    
+    // This format should make for easy batch running..
+	// printf("%d\t%ld", MSG_SIZE, total_time);
+    
 
     close(sock);
     exit(0);

@@ -14,6 +14,7 @@
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
 
+// ref: http://cs.baylor.edu/~donahoo/practical/CSockets/code/TCPEchoServer.c
 
 void DieWithError(char *errorMessage)
 {
@@ -50,7 +51,7 @@ int main(int argc, char *argv[])
     
     int i;
     for(i=0;i<MSG_SIZE;i++)
-		send_msg[i] = 'A';
+	send_msg[i] = 'A';
     send_msg[MSG_SIZE] = '\0';
     
     
@@ -68,6 +69,13 @@ int main(int argc, char *argv[])
     /* Bind to the local address */
     if (bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr)) < 0)
         DieWithError("bind() failed");
+
+    
+    // NO NEED TO TIME!! Client -> Server -> Client..
+    // In batch processing, if we close the server, takes some time to restart..
+    // hence avoid shutting it down at all.
+    // TODO : convert to infi loop
+
 
     /* Mark the socket so it will listen for incoming connections */
     if (listen(servSock, 2) < 0)
@@ -87,7 +95,6 @@ int main(int argc, char *argv[])
 
         printf("Handling client %s\n", inet_ntoa(echoClntAddr.sin_addr));
 
-    // start timing..
     
     /* Receive message from client */
     recvMsgSize = recv(clntSock, recv_buf, RCVBUFSIZE, 0);
@@ -101,19 +108,21 @@ int main(int argc, char *argv[])
 	//send(clntSock, send_msg, recvMsgSize, 0);
          
         /* See if there is more data to receive */
-        if ((recvMsgSize = recv(clntSock, recv_buf, RCVBUFSIZE, 0)) < 0)
-            DieWithError("recv() failed");
-	else
-	{
-	    //printf("Received.. %s\n", recv_buf);
-	    printf("Received Msg Size.. %d\n", recvMsgSize);
-	    totalBytesRcvd+=recvMsgSize;
-	}
+		if ((recvMsgSize = recv(clntSock, recv_buf, RCVBUFSIZE, 0)) < 0)
+		{
+		    DieWithError("recv() failed");
+		}
+		else
+		{
+		    //printf("Received.. %s\n", recv_buf);
+		    printf("Received Msg Size.. %d\n", recvMsgSize);
+		    totalBytesRcvd+=recvMsgSize;
+		}
     }
+    
     shutdown(clntSock, SHUT_RD);
     printf("Total Received: %d\n", totalBytesRcvd);
     printf("Going to send\n");
-    
     
     int sentCount = send(clntSock, send_msg, MSG_SIZE, 0);
     
