@@ -63,7 +63,7 @@ if ( fork() == 0 )
 	close(way1[1]); 
 	close(way2[0]); 
 	
-	read( way1[0], recv_buf, MSG_SIZE+1); /* read from parent */
+	read( way1[0], send_msg, MSG_SIZE+1); /* read from parent */
 	//fprintf(stdout, "Child recvs : %s of size %ld\n", recv_buf, strlen(recv_buf));
 	//fprintf(stdout, "Child recvs msg of size %ld\n", strlen(recv_buf));
 	
