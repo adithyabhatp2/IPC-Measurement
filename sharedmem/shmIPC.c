@@ -39,11 +39,11 @@ int main(int argc, char *argv[])
 	// Creating shared buff
 	fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
 	printf("SHM_OPEN : %d\n", fd);
-	ftruncate(fd, MSG_SIZE+2);
+	ftruncate(fd, MSG_SIZE+1);
 	
 	send_buf_temp = mmap(NULL, MSG_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	char * send_buf = send_buf_temp;
-	char recv_buf[MSG_SIZE+2];
+	char recv_buf[MSG_SIZE+1];
 	
 	close(fd);
 	if(send_buf == MAP_FAILED)
@@ -133,14 +133,29 @@ int main(int argc, char *argv[])
 		//printf("P : waiting for kids\n");
 		//wait(NULL);
 		printf("P : so longl\n");
+	
+	//wait(NULL);
+		
+	pthread_mutex_destroy(&sdata->ipc_mutex);
+	pthread_cond_destroy(&sdata->ipc_startvar);
+	pthread_cond_destroy(&sdata->ipc_condvar);
+		
+	printf("Both : goign to unlink guy1\n");
+	shm_unlink(name);
+	printf("Both : goign to unlink guy2\n");
+	shm_unlink("/my_syncname");
+	
+	//free(sdata);
+			
+	printf("Both : munmap sdata\n");
+	if (munmap(sdata,sizeof(shared_data_t)))
+		perror("munmap()");
 		
 	printf("Both : munmap sendbuf\n");
-	if (munmap(send_buf,MSG_SIZE))
+	if (munmap(send_buf,MSG_SIZE+1))
 		perror("munmap()");
-/*
-	printf("Both : munmap sdata\n");
-	if (munmap(sdata,MSG_SIZE))
-		perror("munmap()");*/
+		
+		
 	}
 	else
 	{  
@@ -153,10 +168,11 @@ int main(int argc, char *argv[])
 		// releases lock while waiting
 		// read stuff
 		printf("C : Going to read..\n");
-		for(i=0;i<=MSG_SIZE;i++)
+		for(i=0;i<MSG_SIZE;i++)
 			recv_buf[i] = send_buf[i];
-		
-		//printf("C : reads..%s\n", recv_buf);
+		recv_buf[MSG_SIZE] = '\0';
+		printf("C : reads..penultimate %d\n", recv_buf[MSG_SIZE-1] );
+		printf("C : reads..last %d\n", recv_buf[MSG_SIZE] );
 		printf("C : reads..%ld\n", strlen(recv_buf));
 		printf("C : going to write..");
 		// write stuff
@@ -174,10 +190,5 @@ int main(int argc, char *argv[])
 	// printf("%d\t%ld", MSG_SIZE, total_time);
 
 
-	printf("Both : goign to unlink guy1\n");
-	shm_unlink(name);
-	printf("Both : goign to unlink guy2\n");
-	shm_unlink("/my_syncname");
-	
 	return 0;
 }
