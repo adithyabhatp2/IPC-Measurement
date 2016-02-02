@@ -47,6 +47,8 @@ for(i=0;i<MSG_SIZE;i++)
 send_msg[MSG_SIZE] = '\0';
 //fprintf(stdout, "Msg is: %s\n", send_msg);
 
+recv_buf[0] = -60;
+
 
 int way1[2];
 int way2[2];
