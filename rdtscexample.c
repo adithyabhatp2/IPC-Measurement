@@ -23,16 +23,21 @@
 
 static __inline__ unsigned long GetCC() {
     unsigned a, d;
+    asm("cpuid"); // disables out of order exec
     asm volatile("rdtsc" : "=a" (a), "=d" (d));
     return ((unsigned long) a) | (((unsigned long) d) << 32);
 }
 
 int main(int argc, char *argv[])
 {
+    
+    float cpuFreq=3192517000;
+    
+    printf("Hello");
 
     unsigned long start, end, cycles_elapsed;
     cpu_set_t cpuMask;
-    double per_second, seconds;
+    double per_second, seconds, nanoseconds;
 
     //Set to one CPU
     CPU_ZERO(&cpuMask);
@@ -47,12 +52,15 @@ int main(int argc, char *argv[])
     end = GetCC();
 
     cycles_elapsed = (end - start);
-
-    fprintf(stdout, "Cycles elapsed: %u\n", cycles_elapsed);
     per_second = ((double) cycles_elapsed) / 2.0;
+    seconds = ((double) cycles_elapsed) / cpuFreq;
+    nanoseconds = ((double) cycles_elapsed) / (cpuFreq/1000000000);
+    
+    fprintf(stdout, "Cycles elapsed: %ld\n", cycles_elapsed);
     fprintf(stdout, "Cycles per second: %f\n", per_second);
-    seconds = ((double) cycles_elapsed) / 3392061000.0;
     fprintf(stdout, "Seconds: %f\n", seconds);
+    printf("Nano : %f\n", nanoseconds);
+
 
     return 0;
 }

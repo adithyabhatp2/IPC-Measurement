@@ -10,8 +10,8 @@
 #include <ctype.h>
 # include <errno.h>
 # include <limits.h>
-
 #include <time.h>
+
 #ifndef __USE_GNU
 #define __USE_GNU
 #endif
@@ -22,6 +22,7 @@
 
 static __inline__ unsigned long GetCC() {
     unsigned a, d;
+    asm("cpuid"); // disables out of order exec
     asm volatile("rdtsc" : "=a" (a), "=d" (d));
     return ((unsigned long) a) | (((unsigned long) d) << 32);
 }
@@ -37,18 +38,14 @@ int main(int argc, char *argv[])
     clk_id = CLOCK_MONOTONIC;
     long BILLION = 1000000000L;
 
-    // TIME STUFFF
+    // START RDTSC STUFFF
     unsigned long long start, end, cycles_elapsed;
     double nanoseconds;
     cpu_set_t cpuMask;
+    float cpuFreq=3192517000;
+    
+    // OTHER RDTSC STUFF BELOW
 
-    /*
-    //Set to one CPU
-    CPU_ZERO(&cpuMask);
-    CPU_SET(0, &cpuMask);
-    sched_setaffinity(0, sizeof(cpuMask), &cpuMask);
-
-    */
 
     if(argc!=2)
     {
@@ -120,18 +117,13 @@ int main(int argc, char *argv[])
 
 
         cycles_elapsed = end - start;
-        nanoseconds = ((double) cycles_elapsed) / 3.392061000;
+        nanoseconds = ((double) cycles_elapsed) / (cpuFreq/1000000000);
+        //printf("%d\t%f\n", MSG_SIZE, nanoseconds/2.0);
+        printf("%0.f\n", nanoseconds/2.0);
 
         //fprintf(stdout, "Time elapsed sec: %d, nsec: %ld\n", time_elapsed_sec, time_elapsed_nsec);
         //fprintf(stdout, "Time elapsed in nanosecs : %lld\n",((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
 
-        printf("%d\t%0.0lf\n", MSG_SIZE, nanoseconds/2.0);
-
-        /* time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
-        time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
-
-        printf("%d\t%lld gettime\n", MSG_SIZE, ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
-        */
     }
 
 

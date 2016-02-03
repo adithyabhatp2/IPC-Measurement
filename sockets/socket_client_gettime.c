@@ -34,26 +34,29 @@ int main(int argc, char *argv[])
     int bytesRcvd, totalBytesRcvd;   /* Bytes read in single recv() 
                                         and total bytes read */
 
-
-    clockid_t clk_id;
-    struct timespec tp_start, tp_end, res;
-    int time_elapsed_sec;
-    long long time_elapsed_nsec;
-    clk_id = CLOCK_MONOTONIC;
-    long BILLION = 1000000000L;
-
     if (argc != 4)    /* Test for correct number of arguments */
     {
-       fprintf(stderr, "Usage: %s <Server IP> <size> [<Echo Port>]\n",
+       fprintf(stderr, "Usage: %s <Server IP> <port> <size> \n",
                argv[0]);
        exit(1);
     }
+    
+    // GETTIME STUFFF
+    clockid_t clk_id;
+    struct timespec tp_start, tp_end;
+    int time_elapsed_sec;
+    long long time_elapsed_nsec;
+    long long throughput_nsec;
+    clk_id = CLOCK_MONOTONIC;
+    long BILLION = 1000000000L;
+    // END GETTIME STUFF
+    
 
     servIP = argv[1];             /* First arg: server IP address (dotted quad) */
     echoServPort = atoi(argv[2]); /* Use given port, if any */
     int MSG_SIZE = atoi(argv[3]); /* Second arg: string to echo */
     
-    printf("Port: %d, Size: %d", echoServPort, MSG_SIZE);
+    //printf("Port: %d, Size: %d\n", echoServPort, MSG_SIZE);
     
     int RCVBUFSIZE = 600301;
 
@@ -101,29 +104,31 @@ int main(int argc, char *argv[])
            a null terminator) bytes from the sender */
         bytesRcvd = recv(sock, recv_buf, RCVBUFSIZE - 1, 0);
         
-	//if (bytesRcvd <= 0)
+		//if (bytesRcvd <= 0)
           //  DieWithError("recv() failed or connection closed prematurely");
         
         totalBytesRcvd += bytesRcvd;   /* Keep tally of total bytes */
         recv_buf[bytesRcvd] = '\0';  /* Terminate the string! */
 	
-        //printf("%s", recv_buf);      /* Print the echo buffer */
+    //printf("%s", recv_buf);      /* Print the echo buffer */
 	//printf("Received Msg Size.. %d\n", bytesRcvd);
     }
-
     clock_gettime(clk_id, &tp_end);
     // END TIMING
 
-    printf("Total Received: %d", totalBytesRcvd);
-    printf("\n");    /* Print a final linefeed */
+    //printf("Total Received: %d\n", totalBytesRcvd);
+    
+    
+    // PRINT GETTIME
+    time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
+    time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
+    //printf("%d\t%lld\n", MSG_SIZE, ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
+    printf("%lld\n", ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
+    // END PRINT GETTIME
     
     // This format should make for easy batch running..
-	// printf("%d\t%ld", MSG_SIZE, total_time);
+    // printf("%d\t%ld", MSG_SIZE, total_time);
     
-	time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
-	time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
-
-	printf("%d\t%lld\n", MSG_SIZE, ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
 
     close(sock);
     exit(0);

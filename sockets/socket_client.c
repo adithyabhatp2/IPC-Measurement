@@ -40,6 +40,17 @@ int main(int argc, char *argv[])
                argv[0]);
        exit(1);
     }
+    
+    // GETTIME STUFFF
+    clockid_t clk_id;
+    struct timespec tp_start, tp_end, res;
+    int time_elapsed_sec;
+    long long time_elapsed_nsec;
+    long long throughput_nsec;
+    clk_id = CLOCK_MONOTONIC;
+    long BILLION = 1000000000L;
+    // END GETTIME STUFF
+    
 
     servIP = argv[1];             /* First arg: server IP address (dotted quad) */
     echoServPort = atoi(argv[2]); /* Use given port, if any */
@@ -74,7 +85,7 @@ int main(int argc, char *argv[])
     
     
     // START TIMING
-    
+    clock_gettime(clk_id, &tp_start);
     int sentCount = send(sock, send_msg, MSG_SIZE, 0);
     if (sentCount != MSG_SIZE)
         DieWithError("send() sent a different number of bytes than expected");
@@ -101,14 +112,20 @@ int main(int argc, char *argv[])
         //printf("%s", recv_buf);      /* Print the echo buffer */
 	//printf("Received Msg Size.. %d\n", bytesRcvd);
     }
-
+    clock_gettime(clk_id, &tp_end);
     // END TIMING
 
     printf("Total Received: %d", totalBytesRcvd);
     printf("\n");    /* Print a final linefeed */
     
+    // PRINT GETTIME
+    time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
+    time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
+    printf("%d\t%lld\n", MSG_SIZE, ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
+    // END PRINT GETTIME
+    
     // This format should make for easy batch running..
-	// printf("%d\t%ld", MSG_SIZE, total_time);
+    // printf("%d\t%ld", MSG_SIZE, total_time);
     
 
     close(sock);

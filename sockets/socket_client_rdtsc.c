@@ -19,6 +19,20 @@
 #endif
 #define _GNU_SOURCE
 #include <sched.h>
+
+#include <sys/mman.h>   /* shared memory and mmap() */
+#include <pthread.h> /* POSIX Threads */
+
+
+static __inline__ unsigned long GetCC() {
+    unsigned a, d;
+    asm("cpuid"); // disables out of order exec
+    asm volatile("rdtsc" : "=a" (a), "=d" (d));
+    return ((unsigned long) a) | (((unsigned long) d) << 32);
+}
+
+// END RDTSC HEADER
+
 // ref : http://cs.baylor.edu/~donahoo/practical/CSockets/code/TCPEchoClient.c
 
 void DieWithError(char *errorMessage)
@@ -27,12 +41,6 @@ void DieWithError(char *errorMessage)
     exit(1);
 }
 
-
-static __inline__ unsigned long GetCC() {
-    unsigned a, d;
-    asm volatile("rdtsc" : "=a" (a), "=d" (d));
-    return ((unsigned long) a) | (((unsigned long) d) << 32);
-}
 
 int main(int argc, char *argv[])
 {
@@ -45,23 +53,28 @@ int main(int argc, char *argv[])
     int bytesRcvd, totalBytesRcvd;   /* Bytes read in single recv() 
                                         and total bytes read */
 
-	
-    unsigned long long start, end, cycles_elapsed;
-    double nanoseconds;
-    cpu_set_t cpuMask;
-
     if (argc != 4)    /* Test for correct number of arguments */
     {
-       fprintf(stderr, "Usage: %s <Server IP> <size> [<Echo Port>]\n",
+       fprintf(stderr, "Usage: %s <Server IP> <port> <size> \n",
                argv[0]);
        exit(1);
     }
+    
+ 
+    // START RDTSC STUFFF
+    unsigned long long start, end, cycles_elapsed;
+    double nanoseconds;
+    cpu_set_t cpuMask;
+    float cpuFreq=3192517000;
+    
+    // OTHER RDTSC STUFF BELOW
+    
 
     servIP = argv[1];             /* First arg: server IP address (dotted quad) */
     echoServPort = atoi(argv[2]); /* Use given port, if any */
     int MSG_SIZE = atoi(argv[3]); /* Second arg: string to echo */
     
-    printf("Port: %d, Size: %d", echoServPort, MSG_SIZE);
+    //printf("Port: %d, Size: %d\n", echoServPort, MSG_SIZE);
     
     int RCVBUFSIZE = 600301;
 
@@ -113,32 +126,30 @@ int main(int argc, char *argv[])
            a null terminator) bytes from the sender */
         bytesRcvd = recv(sock, recv_buf, RCVBUFSIZE - 1, 0);
         
-	//if (bytesRcvd <= 0)
+          //if (bytesRcvd <= 0)
           //  DieWithError("recv() failed or connection closed prematurely");
         
         totalBytesRcvd += bytesRcvd;   /* Keep tally of total bytes */
         recv_buf[bytesRcvd] = '\0';  /* Terminate the string! */
 	
-        //printf("%s", recv_buf);      /* Print the echo buffer */
+    //printf("%s", recv_buf);      /* Print the echo buffer */
 	//printf("Received Msg Size.. %d\n", bytesRcvd);
     }
-
+    
     end = GetCC();
-    // END TIMING
+    // END TIME
+
+    //printf("Total Received: %d\n", totalBytesRcvd);
+    
+    //RDTSC PRINT
+    cycles_elapsed = end - start;
+    nanoseconds = ((double) cycles_elapsed) / (cpuFreq/1000000000);
+    //printf("%d\t%.0f\n", MSG_SIZE, nanoseconds/2.0);
+    printf("%.0f\n", MSG_SIZE, nanoseconds/2.0);
+    //END RDTSC PRINT
+        
 
     close(sock);
-
-    printf("Total Received: %d", totalBytesRcvd);
-    printf("\n");    /* Print a final linefeed */
-    
-    // This format should make for easy batch running..
-	// printf("%d\t%ld", MSG_SIZE, total_time);
-    
-    cycles_elapsed = end - start;
-    nanoseconds = ((double) cycles_elapsed) / 3.392061000;
-
-    printf("%d\t%0.0lf\n", MSG_SIZE, nanoseconds/2.0);
-
     exit(0);
 }
 
