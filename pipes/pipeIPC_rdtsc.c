@@ -28,16 +28,27 @@ static __inline__ unsigned long GetCC() {
 
 int main(int argc, char *argv[])
 {
+    // TIME STUFFF
+    clockid_t clk_id;
+    struct timespec tp_start, tp_end, res;
+    int time_elapsed_sec;
+    long long time_elapsed_nsec;
+    int retVal= 0;
+    clk_id = CLOCK_MONOTONIC;
+    long BILLION = 1000000000L;
 
     // TIME STUFFF
     unsigned long long start, end, cycles_elapsed;
     double nanoseconds;
     cpu_set_t cpuMask;
 
+    /*
     //Set to one CPU
     CPU_ZERO(&cpuMask);
     CPU_SET(0, &cpuMask);
     sched_setaffinity(0, sizeof(cpuMask), &cpuMask);
+
+    */
 
     if(argc!=2)
     {
@@ -88,12 +99,18 @@ int main(int argc, char *argv[])
         close(way1[0]); 
         close(way2[1]); 
 
+        CPU_ZERO(&cpuMask);
+        CPU_SET(0, &cpuMask);
+        sched_setaffinity(0, sizeof(cpuMask), &cpuMask);
+
         // START TIME
+        //clock_gettime(clk_id, &tp_start);
         start = GetCC();
         write( way1[1], send_msg, strlen(send_msg)+1); /* write to child */ 
 
         read( way2[0], recv_buf, MSG_SIZE+1); /* read from child */	
         end = GetCC();
+        //clock_gettime(clk_id, &tp_end);
         // END TIME
 
         //fprintf(stdout, "Parent recvs : %s of size %ld\n", send_msg, strlen(send_msg));
@@ -108,8 +125,13 @@ int main(int argc, char *argv[])
         //fprintf(stdout, "Time elapsed sec: %d, nsec: %ld\n", time_elapsed_sec, time_elapsed_nsec);
         //fprintf(stdout, "Time elapsed in nanosecs : %lld\n",((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
 
-        printf("%d\t%f\n", MSG_SIZE, nanoseconds/2.0);
+        printf("%d\t%0.0lf\n", MSG_SIZE, nanoseconds/2.0);
 
+        /* time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
+        time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
+
+        printf("%d\t%lld gettime\n", MSG_SIZE, ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
+        */
     }
 
 

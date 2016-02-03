@@ -50,11 +50,6 @@ int main(int argc, char *argv[])
     double nanoseconds;
     cpu_set_t cpuMask;
 
-    //Set to one CPU
-    CPU_ZERO(&cpuMask);
-    CPU_SET(0, &cpuMask);
-    sched_setaffinity(0, sizeof(cpuMask), &cpuMask);
-
     if (argc != 4)    /* Test for correct number of arguments */
     {
        fprintf(stderr, "Usage: %s <Server IP> <size> [<Echo Port>]\n",
@@ -93,6 +88,10 @@ int main(int argc, char *argv[])
     if (connect(sock, (struct sockaddr *) &socketServAddr, sizeof(socketServAddr)) < 0)
         DieWithError("connect() failed");
     
+    //Set to one CPU
+    CPU_ZERO(&cpuMask);
+    CPU_SET(0, &cpuMask);
+    sched_setaffinity(0, sizeof(cpuMask), &cpuMask);
     
     // START TIMING
     start = GetCC();
@@ -138,7 +137,7 @@ int main(int argc, char *argv[])
     cycles_elapsed = end - start;
     nanoseconds = ((double) cycles_elapsed) / 3.392061000;
 
-    printf("%d\t%f\n", MSG_SIZE, nanoseconds/2.0);
+    printf("%d\t%0.0lf\n", MSG_SIZE, nanoseconds/2.0);
 
     exit(0);
 }
