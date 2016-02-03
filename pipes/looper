@@ -1,5 +1,16 @@
-for i in `seq 1 100`;
+mkdir stats
+for size in 4 16 64 256 1024 4096 16384 65536 262144 524288
+#for size in 4 16
 do
-    echo $i;
-    ./pipeIPC_gettime 4 >> result.txt
+    echo $size
+    for type in gettime rdtsc
+    do
+	echo $type
+	for i in `seq 1 100`;
+	do
+	    echo $i;
+	    ./pipeIPC_$type $size >> "stats/stats_${size}_${type}.txt"
+	    #./pipeIPC_$type $size
+	done
+    done
 done

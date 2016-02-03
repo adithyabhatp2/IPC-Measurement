@@ -24,15 +24,15 @@ if(argc!=2)
 	exit(0);
 	}
 
-// TIME STUFFF
+// GETTIME STUFFF
 clockid_t clk_id;
-struct timespec tp_start, tp_end, res;
+struct timespec tp_start, tp_end;
 int time_elapsed_sec;
 long long time_elapsed_nsec;
-int retVal= 0;
+
 clk_id = CLOCK_MONOTONIC;
 long BILLION = 1000000000L;
-		
+// END GETTIME STUFF
 
 int MSG_SIZE = atoi(argv[1]);
 //int MSG_SIZE = (4);
@@ -92,13 +92,16 @@ else
 	// This format should make for easy batch running..
 	
 
-	time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
-	time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
 
 	//fprintf(stdout, "Time elapsed sec: %d, nsec: %ld\n", time_elapsed_sec, time_elapsed_nsec);
 	//fprintf(stdout, "Time elapsed in nanosecs : %lld\n",((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
 	
-	printf("%d\t%lld\n", MSG_SIZE, ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
+	// PRINT GETTIME
+	time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
+	time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
+	//printf("%d\t%lld\n", MSG_SIZE, ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
+	printf("%lld\n", ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
+	// END PRINT GETTIME
 	
 	}
 	
