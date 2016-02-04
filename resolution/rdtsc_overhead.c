@@ -26,6 +26,10 @@ int main(int argc, char **args) {
     double cpuFreq, nanoseconds;
     int n, N;
 
+    //TODO: set cpuFreq to the appropriate value. 
+    //This one is completely fictitious
+    cpuFreq = 0.331060000000;
+
     N = atoi(args[1]);
 
     //Set to one CPU
@@ -48,7 +52,7 @@ int main(int argc, char **args) {
     }
     end = GetCC();
 
-    printf("Estimated overhead: %lld ns\n",
-            (end - start) / (N+1) / 10);
+    printf("Estimated overhead: %.0lf ns\n",
+            (end - start) / cpuFreq / (N+1) / 10);
     return 0;
 }
