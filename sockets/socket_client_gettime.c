@@ -13,7 +13,7 @@
 #include <time.h>
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
-
+#include <netinet/tcp.h> // TCP_NODELAY
 // ref : http://cs.baylor.edu/~donahoo/practical/CSockets/code/TCPEchoClient.c
 
 void DieWithError(char *errorMessage)
@@ -46,7 +46,6 @@ int main(int argc, char *argv[])
     struct timespec tp_start, tp_end;
     int time_elapsed_sec;
     long long time_elapsed_nsec;
-    long long throughput_nsec;
     clk_id = CLOCK_MONOTONIC;
     long BILLION = 1000000000L;
     // END GETTIME STUFF
@@ -66,8 +65,11 @@ int main(int argc, char *argv[])
     int i;
     for(i=0;i<MSG_SIZE;i++)
 	send_msg[i] = 'A';
-    send_msg[MSG_SIZE] = '\0';
+    send_msg[MSG_SIZE] = 255;
     
+    int j=0;
+    for(j=0;j<100;j++)
+    {
     
     /* Create a reliable, stream socket using TCP */
     if ((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
@@ -79,57 +81,72 @@ int main(int argc, char *argv[])
     socketServAddr.sin_addr.s_addr = inet_addr(servIP);   /* Server IP address */
     socketServAddr.sin_port        = htons(echoServPort); /* Server port */
 
+
+
+
     /* Establish the connection to the echo server */
     if (connect(sock, (struct sockaddr *) &socketServAddr, sizeof(socketServAddr)) < 0)
         DieWithError("connect() failed");
     
+        // START TCP_NODELAY
+    	int flag = 1;
+        int result = setsockopt(sock,            /* socket affected */
+                                 IPPROTO_TCP,     /* set option at TCP level */
+                                 TCP_NODELAY,     /* name of option */
+                                 (char *) &flag,  /* the cast is historical
+                                                         cruft */
+                                 sizeof(int));    /* length of option value */
+         if (result < 0)
+	    {
+		perror("TCP_NODELAY setting failed..");
+	    }
+    // END TCP_NODELAY
     
     // START TIMING
-    clock_gettime(clk_id, &tp_start);
-    int sentCount = send(sock, send_msg, MSG_SIZE, 0);
-    if (sentCount != MSG_SIZE)
-        DieWithError("send() sent a different number of bytes than expected");
-    
-    // printf("Sent msg.. size:%d\n", sentCount);
-    shutdown(sock, SHUT_WR);
 
-    /* Receive the same string back from the server */
-    totalBytesRcvd = 0;
-    // printf("Received: ");                /* Setup to print the echoed string */
-    
-    while (totalBytesRcvd < MSG_SIZE)
-    {
-        /* Receive up to the buffer size (minus 1 to leave space for
-           a null terminator) bytes from the sender */
-        bytesRcvd = recv(sock, recv_buf, RCVBUFSIZE - 1, 0);
-        
-		//if (bytesRcvd <= 0)
-          //  DieWithError("recv() failed or connection closed prematurely");
-        
-        totalBytesRcvd += bytesRcvd;   /* Keep tally of total bytes */
-        recv_buf[bytesRcvd] = '\0';  /* Terminate the string! */
+	clock_gettime(clk_id, &tp_start);
+	int sentCount = send(sock, send_msg, MSG_SIZE, 0);
+	if (sentCount != MSG_SIZE)
+	    DieWithError("send() sent a different number of bytes than expected");
 	
-    //printf("%s", recv_buf);      /* Print the echo buffer */
-	//printf("Received Msg Size.. %d\n", bytesRcvd);
-    }
-    clock_gettime(clk_id, &tp_end);
-    // END TIMING
+	//printf("Sent msg.. size:%d\n", sentCount);
+	shutdown(sock, SHUT_WR);
 
-    //printf("Total Received: %d\n", totalBytesRcvd);
+	/* Receive the same string back from the server */
+	totalBytesRcvd = 0;
+	// printf("Received: ");                /* Setup to print the echoed string */
+	
+	while (totalBytesRcvd < MSG_SIZE)
+	{
+	    /* Receive up to the buffer size (minus 1 to leave space for
+	       a null terminator) bytes from the sender */
+	    bytesRcvd = recv(sock, recv_buf, RCVBUFSIZE - 1, 0);
+	    
+		    if (bytesRcvd <= 0)
+	      DieWithError("recv() failed or connection closed prematurely");
+	    
+	    totalBytesRcvd += bytesRcvd;   /* Keep tally of total bytes */
+	    recv_buf[bytesRcvd] = '\0';  /* Terminate the string! */
+	    
+	//printf("%s", recv_buf);      /* Print the echo buffer */
+	    //printf("Received Msg Size.. %d\n", bytesRcvd);
+	}
+	clock_gettime(clk_id, &tp_end);
+	// END TIMING
+
+	//printf("Total Received: %d\n", totalBytesRcvd);
+	
+	
+	// PRINT GETTIME
+	time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
+	time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
+	printf("%lld\n", ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
+	// END PRINT GETTIME
     
-    
-    // PRINT GETTIME
-    time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
-    time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
-    //printf("%d\t%lld\n", MSG_SIZE, ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
-    printf("%lld\n", ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
-    // END PRINT GETTIME
-    
-    // This format should make for easy batch running..
-    // printf("%d\t%ld", MSG_SIZE, total_time);
     
 
     close(sock);
+}
     exit(0);
 }
 

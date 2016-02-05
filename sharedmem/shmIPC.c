@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 	size_t MSG_SIZE;
 	void *send_buf_temp;
 
-	char name[] = "/my_shmsname";
+	char name[] = "/my_shmsname10";
 
 	MSG_SIZE=atoi(argv[1]);
 	printf("Size : %ld\n", MSG_SIZE);
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 		pthread_cond_t  ipc_startvar;	
 	} shared_data_t;
 
-	fd = shm_open("/my_syncname", O_CREAT|O_EXCL|O_RDWR, S_IRUSR|S_IWUSR);
+	fd = shm_open("/my_syncname10", O_CREAT|O_EXCL|O_RDWR, S_IRUSR|S_IWUSR);
 	printf("SHM_OPEN sync : %d\n", fd);
 	ftruncate(fd, sizeof(shared_data_t));
 	shared_data_t* sdata = (shared_data_t*)mmap(0, sizeof(shared_data_t), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 	printf("Both : goign to unlink guy1\n");
 	shm_unlink(name);
 	printf("Both : goign to unlink guy2\n");
-	shm_unlink("/my_syncname");
+	shm_unlink("/my_syncname10");
 	
 	//free(sdata);
 			

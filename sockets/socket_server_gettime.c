@@ -13,7 +13,7 @@
 #include <time.h>
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
-
+#include <netinet/tcp.h> // TCP_NODELAY
 // ref: http://cs.baylor.edu/~donahoo/practical/CSockets/code/TCPEchoServer.c
 
 void DieWithError(char *errorMessage)
@@ -93,6 +93,18 @@ int main(int argc, char *argv[])
                                &clntLen)) < 0)
             {
 		DieWithError("accept() failed");
+	    }
+
+	int flag = 1;
+        int result = setsockopt(clntSock,            /* socket affected */
+                                 IPPROTO_TCP,     /* set option at TCP level */
+                                 TCP_NODELAY,     /* name of option */
+                                 (char *) &flag,  /* the cast is historical
+                                                         cruft */
+                                 sizeof(int));    /* length of option value */
+         if (result < 0)
+	    {
+		perror("TCP_NODELAY setting failed..");
 	    }
 
         /* clntSock is connected to a client! */

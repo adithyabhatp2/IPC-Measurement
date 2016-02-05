@@ -13,7 +13,7 @@
 #include <time.h>
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
-
+#include <netinet/tcp.h> // TCP_NODELAY
 // RDTSC HEADER
 #ifndef __USE_GNU
 #define __USE_GNU
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     unsigned long long start, end, cycles_elapsed;
     double nanoseconds;
     cpu_set_t cpuMask;
-    float cpuFreq=3192517000;
+    float cpuFreq=3192700000;
     
     //Set to one CPU
     CPU_ZERO(&cpuMask);
@@ -91,6 +91,9 @@ int main(int argc, char *argv[])
 	send_msg[i] = 'A';
     send_msg[MSG_SIZE] = '\0';
     
+    int j=0;
+    for(j=0;j<100;j++)
+    {
     
     /* Create a reliable, stream socket using TCP */
     if ((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
@@ -105,6 +108,20 @@ int main(int argc, char *argv[])
     /* Establish the connection to the echo server */
     if (connect(sock, (struct sockaddr *) &socketServAddr, sizeof(socketServAddr)) < 0)
         DieWithError("connect() failed");
+    
+    // START TCP_NODELAY
+    	int flag = 1;
+        int result = setsockopt(sock,            /* socket affected */
+                                 IPPROTO_TCP,     /* set option at TCP level */
+                                 TCP_NODELAY,     /* name of option */
+                                 (char *) &flag,  /* the cast is historical
+                                                         cruft */
+                                 sizeof(int));    /* length of option value */
+         if (result < 0)
+	    {
+		perror("TCP_NODELAY setting failed..");
+	    }
+    // END TCP_NODELAY
     
     
     // START TIME
@@ -145,11 +162,12 @@ int main(int argc, char *argv[])
     cycles_elapsed = end - start;
     nanoseconds = ((double) cycles_elapsed) / (cpuFreq/1000000000);
     //printf("%d\t%.0f\n", MSG_SIZE, nanoseconds/2.0);
-    printf("%.0f\n", MSG_SIZE, nanoseconds/2.0);
+    printf("%.0f\n", nanoseconds/2.0);
     //END RDTSC PRINT
         
 
     close(sock);
+    }
     exit(0);
 }
 

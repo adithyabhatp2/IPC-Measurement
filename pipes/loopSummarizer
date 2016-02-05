@@ -1,0 +1,12 @@
+rm summary.txt
+for size in 4 16 64 256 1024 4096 16384 65536 262144 524288
+do
+    for type in gettime rdtsc
+    do
+	#echo $size >> summary.txt
+	printf "%s\t" $size  >> summary.txt
+	#echo $type >> summary.txt
+	printf "%s\t" $type  >> summary.txt
+	awk -F 't' 'BEGIN{min=1000000;size=$size;type=$type;}{if($1<min) {min=$1}}END{printf("%d\n",min)}' "newstats/stats_${size}_${type}.txt" >>  summary.txt
+    done
+done

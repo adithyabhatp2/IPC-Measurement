@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     unsigned long long start, end, cycles_elapsed;
     double nanoseconds;
     cpu_set_t cpuMask;
-    float cpuFreq=3192517000;
+    float cpuFreq=3192700000;
     
     //Set to one CPU
     CPU_ZERO(&cpuMask);
@@ -47,7 +47,6 @@ int main(int argc, char *argv[])
         printf("Usage: %s <MSG_SIZE>\n", argv[0]);
         exit(0);
     }
-
 
     int MSG_SIZE = atoi(argv[1]);
     //int MSG_SIZE = (4);
@@ -78,40 +77,49 @@ int main(int argc, char *argv[])
         close(way1[1]); 
         close(way2[0]); 
 
-        read( way1[0], recv_buf, MSG_SIZE+1); /* read from parent */
-        //fprintf(stdout, "Child recvs : %s of size %ld\n", recv_buf, strlen(recv_buf));
-        //fprintf(stdout, "Child recvs msg of size %ld\n", strlen(recv_buf));
+	int i=0;
+	for(i=0;i<1000;i++)
+	    {
+	    read( way1[0], recv_buf, MSG_SIZE+1); /* read from parent */
+	    //fprintf(stdout, "Child recvs : %s of size %ld\n", recv_buf, strlen(recv_buf));
+	    //fprintf(stdout, "Child recvs msg of size %ld\n", strlen(recv_buf));
 
-        write( way2[1], recv_buf, strlen(recv_buf)+1); /* write to parent */ 
-        //fprintf(stdout, "Child sent : %s\n", recv_buf);
-        //fprintf(stdout, "Child sends msg of size %ld\n", strlen(recv_buf));
-    }
+	    //write( way2[1], recv_buf, strlen(recv_buf)+1); /* write to parent */ 
+	    //fprintf(stdout, "Child sent : %s\n", recv_buf);
+	    //fprintf(stdout, "Child sends msg of size %ld\n", strlen(recv_buf));
+	    }
+	write( way2[1], recv_buf, 1); /* write to parent */ 
+	}
     else
     {  		
         close(way1[0]); 
         close(way2[1]); 
 
         // START TIME
-        start = GetCC();
-        write( way1[1], send_msg, strlen(send_msg)+1); /* write to child */ 
+	start = GetCC();
+	int i=0;
+	for(i=0;i<1000;i++)
+	    {
+	    
+	    write( way1[1], send_msg, strlen(send_msg)+1); /* write to child */ 
 
-        read( way2[0], recv_buf, MSG_SIZE+1); /* read from child */	
-        end = GetCC();
-        // END TIME
+//	    read( way2[0], recv_buf, MSG_SIZE+1); /* read from child */	
+	    
+	    }
+	    read( way2[0], recv_buf, 1); /* read from child */	
+	    end = GetCC();
+	    // END TIME
 
-        //fprintf(stdout, "Parent recvs : %s of size %ld\n", send_msg, strlen(send_msg));
-        //fprintf(stdout, "Parent recvs msg of size %ld\n", strlen(send_msg));
+	    //fprintf(stdout, "Parent recvs : %s of size %ld\n", send_msg, strlen(send_msg));
+	    //fprintf(stdout, "Parent recvs msg of size %ld\n", strlen(send_msg));
 
-        // This format should make for easy batch running..
+	    // This format should make for easy batch running..
 
 
-        cycles_elapsed = end - start;
-        nanoseconds = ((double) cycles_elapsed) / (cpuFreq/1000000000);
-	//printf("%d\t%f\n", MSG_SIZE, nanoseconds/2.0);
-	printf("%0.f\n", nanoseconds/2.0);
-	
-        //fprintf(stdout, "Time elapsed sec: %d, nsec: %ld\n", time_elapsed_sec, time_elapsed_nsec);
-        //fprintf(stdout, "Time elapsed in nanosecs : %lld\n",((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
+	    cycles_elapsed = end - start;
+	    nanoseconds = ((double) cycles_elapsed) / (cpuFreq/1000000000);
+	    //printf("%d\t%f\n", MSG_SIZE, nanoseconds/2.0);
+	    printf("%0.f\n", nanoseconds/1000);
 
     }
 

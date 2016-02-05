@@ -63,13 +63,17 @@ if ( fork() == 0 )
 	close(way1[1]); 
 	close(way2[0]); 
 	
-	read( way1[0], recv_buf, MSG_SIZE+1); /* read from parent */
-	//fprintf(stdout, "Child recvs : %s of size %ld\n", recv_buf, strlen(recv_buf));
-	//fprintf(stdout, "Child recvs msg of size %ld\n", strlen(recv_buf));
-	
-	write( way2[1], recv_buf, strlen(recv_buf)+1); /* write to parent */ 
-	//fprintf(stdout, "Child sent : %s\n", recv_buf);
-	//fprintf(stdout, "Child sends msg of size %ld\n", strlen(recv_buf));
+	int i=0;
+	for(i=0;i<1000;i++)
+		{
+		read( way1[0], recv_buf, MSG_SIZE+1); /* read from parent */
+		//fprintf(stdout, "Child recvs : %s of size %ld\n", recv_buf, strlen(recv_buf));
+		//fprintf(stdout, "Child recvs msg of size %ld\n", strlen(recv_buf));
+
+		}
+		write( way2[1], recv_buf, 1); /* write to parent */ 
+		//fprintf(stdout, "Child sent : %s\n", recv_buf);
+		//fprintf(stdout, "Child sends msg of size %ld\n", strlen(recv_buf));
 	}
 else
 	{  		
@@ -78,30 +82,37 @@ else
 	
 	// START TIME
 	clock_gettime(clk_id, &tp_start);
-	write( way1[1], send_msg, strlen(send_msg)+1); /* write to child */ 
-	//fprintf(stdout, "Parent sends : %s\n", send_msg);
-	//fprintf(stdout, "Parent sends msg of size %ld\n", strlen(send_msg));
-	
-	read( way2[0], recv_buf, MSG_SIZE+1); /* read from child */	
-	clock_gettime(clk_id, &tp_end);
-	// END TIME
-	
-	//fprintf(stdout, "Parent recvs : %s of size %ld\n", send_msg, strlen(send_msg));
-	//fprintf(stdout, "Parent recvs msg of size %ld\n", strlen(send_msg));
-	
-	// This format should make for easy batch running..
-	
+	int i=0;
+	for(i=0;i<1000;i++)
+		{
+		
+		write( way1[1], send_msg, strlen(send_msg)+1); /* write to child */ 
+		//fprintf(stdout, "Parent sends : %s\n", send_msg);
+		//fprintf(stdout, "Parent sends msg of size %ld\n", strlen(send_msg));
+		
+		// END TIME
+		
+		//fprintf(stdout, "Parent recvs : %s of size %ld\n", send_msg, strlen(send_msg));
+		//fprintf(stdout, "Parent recvs msg of size %ld\n", strlen(send_msg));
+		
+		// This format should make for easy batch running..
+		
 
 
-	//fprintf(stdout, "Time elapsed sec: %d, nsec: %ld\n", time_elapsed_sec, time_elapsed_nsec);
-	//fprintf(stdout, "Time elapsed in nanosecs : %lld\n",((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
-	
-	// PRINT GETTIME
-	time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
-	time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
-	//printf("%d\t%lld\n", MSG_SIZE, ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
-	printf("%lld\n", ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
-	// END PRINT GETTIME
+		//fprintf(stdout, "Time elapsed sec: %d, nsec: %ld\n", time_elapsed_sec, time_elapsed_nsec);
+		//fprintf(stdout, "Time elapsed in nanosecs : %lld\n",((BILLION*time_elapsed_sec)+time_elapsed_nsec)/2);
+		
+		}
+		
+		read( way2[0], recv_buf, 1); /* read from child */	
+		// PRINT GETTIME
+		clock_gettime(clk_id, &tp_end);
+		time_elapsed_sec = (tp_end.tv_sec - tp_start.tv_sec);
+		time_elapsed_nsec = (tp_end.tv_nsec - tp_start.tv_nsec);
+		
+		printf("%lld\n", ((BILLION*time_elapsed_sec)+time_elapsed_nsec)/1000);
+		// END PRINT GETTIME
+		
 	
 	}
 	
