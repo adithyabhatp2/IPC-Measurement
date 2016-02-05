@@ -1,0 +1,14 @@
+rm summaryMedian.txt
+for size in 4 16 64 256 1024 4096 16384 65536 262144 524288
+do
+    for type in gettime rdtsc
+    do
+	#echo $size >> summaryMedian.txt
+	printf "%s\t" $size  >> summaryMedian.txt
+	#echo $type >> summaryMedian.txt
+	printf "%s\t" $type  >> summaryMedian.txt
+    sort -n "newstats/stats_${size}_${type}.txt" > sorted.txt
+	awk -F 't' '{count[NR] = $1}END{if(NR % 2) {print count[(NR + 1) / 2];} else {print (count[(NR / 2)] + count[(NR/2) + 1]) / 2.0;}}' "sorted.txt" >>  summaryMedian.txt
+    rm sorted.txt
+    done
+done
